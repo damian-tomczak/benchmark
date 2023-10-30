@@ -1,12 +1,15 @@
 #include "source.h"
 
+using namespace std::literals;
+
 void foo1()
 {
     PROFILE_FUNCTION();
 
     for (int i = 0; i < 1000; i++)
     {
-        std::cout << "Hello world #" << i << std::endl;
+        std::cout << std::format("Hello {}!\n", "world");
+
     }
 }
 
@@ -16,19 +19,16 @@ void foo2()
 
     for (int i = 0; i < 1000; i++)
     {
-        std::cout << "Hello world #" << sqrt(i) << std::endl;
+        std::cout << "Hello"s + "world";
     }
 }
 
 void runBenchmarks()
 {
     std::cout << "Running Benchmarks...\n";
-    //std::thread a([]() {foo1(); });
-    //std::thread b([]() {foo2(); });
+    std::thread a([]() {foo1(); });
+    std::thread b([]() {foo2(); });
 
-    //a.join();
-    //b.join();
-
-    foo1();
-    foo2();
+    a.join();
+    b.join();
 }
