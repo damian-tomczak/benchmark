@@ -12,7 +12,7 @@ struct ProfileResult
 {
     std::string Name;
     long long Start, End;
-    uint32_t ThreadID;
+    size_t ThreadID;
 };
 
 struct InstrumentationSession
@@ -25,7 +25,8 @@ class Instrumentor
 private:
     InstrumentationSession* m_CurrentSession;
     std::ofstream m_OutputStream;
-    int m_ProfileCount;
+    int32_t m_ProfileCount;
+
 public:
     Instrumentor()
         : m_CurrentSession(nullptr), m_ProfileCount(0)
@@ -110,8 +111,8 @@ public:
         long long start = std::chrono::time_point_cast<std::chrono::microseconds>(m_StartTimepoint).time_since_epoch().count();
         long long end = std::chrono::time_point_cast<std::chrono::microseconds>(endTimepoint).time_since_epoch().count();
 
-        uint32_t threadID = std::hash<std::thread::id>{}(std::this_thread::get_id());
-        Instrumentor::Get().WriteProfile({ m_Name, start, end, threadID });
+        size_t threadID = std::hash<std::thread::id>{}(std::this_thread::get_id());
+        Instrumentor::Get().WriteProfile({m_Name, start, end, threadID});
 
         m_Stopped = true;
     }
@@ -123,8 +124,15 @@ private:
 
 #define PROFILING 1
 #if PROFILING
+#ifdef _WIN32
+#define FUNCTION_SIGNATURE __FUNCSIG__
+#elif __linux__
+#define FUNCTION_SIGNATURE __PRETTY_FUNCTION__
+#else
+#error not implemented
+#endif
 #define PROFILE_SCOPE(name) InstrumentationTimer timer##__LINE__(name)
-#define PROFILE_FUNCTION() PROFILE_SCOPE(__PRETTY_FUNCTION__)
+#define PROFILE_FUNCTION() PROFILE_SCOPE(FUNCTION_SIGNATURE)
 #else
 #define PROFILE_SCOPE(name)
 #endif
